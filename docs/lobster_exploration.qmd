@@ -1,0 +1,108 @@
+---
+title: "day6-activities"
+format: html
+editor: visual
+---
+
+```{r}
+library(tidyverse)
+library(here)
+library(janitor)
+library(dplyr)
+```
+
+```{r}
+lobster_abundance <- read_csv(here("data","Lobster_Abundance_All_Years_20210412.csv"),na = "-99999", "") %>% clean_names() %>% uncount(count)
+```
+
+Find count and mean by site & year
+
+```{r}
+lobster_table <- lobster_abundance %>% 
+  group_by(site,year) %>% 
+  summarize(mean_carapace_lengths = mean(size_mm, na.rm = TRUE),total_counts = n())
+
+# Create a ggplot 
+
+ggplot(lobster_table, aes(x = year, y = total_counts)) + geom_line(aes(color = site))
+ 
+```
+
+Find the proportion of legal lobsters at each site for 2020
+
+```{r}
+# Lobster data from 2020
+
+lobster_2020 <- lobster_abundance %>% filter(year == 2020)
+
+## Counts of lobsteres observed at each sotes that are above and below the legal limit
+# Legal limit = 79.76mm 
+# 79.76 > legal
+
+# Write code (you can decide how to do this - there are a number of ways) to find the counts of lobsters observed at each site (only using site as the grouping factor) that are above and below the legal limit. Hint: You may want to add a new column legal that contains “yes” or “no” based on the size of the observed lobster (see dplyr::case_when() for a really nice way to do this), then use group_by() %>% summarize(n()) or dplyr::count() to get counts by group within variables
+
+
+legal_illegal <- lobster_2020 %>% 
+  mutate(legal_limit = case_when(
+    size_mm >= 79.77 ~ "yes",
+    size_mm < 79.77 ~ "no"
+  )) %>% group_by(site,legal_limit) %>% summarise(count = n())
+ 
+
+```
+
+```{r}
+#stacked column graph
+
+ggplot(legal_illegal, aes(x = site, y = count )) + geom_col(position = "fill", aes(fill = legal_limit))
+```
+
+Task 3
+
+```{r}
+# Filter practice
+
+vec_a <- c("IVEE","CARP","NAPL")
+
+ex_a <- lobster_abundance %>% filter(site == vec_a)
+
+unique(ex_a$site)
+
+ex_b <- lobster_abundance %>% separate(col = 'year',
+                                       into = c('year','month','day',
+                                                sep = '-'))
+
+ex_b <- lobster_abundance %>% filter(month == 8)
+
+#c
+
+ex_c <- lobster_abundance %>% filter(site == "AQUE"|size_mm > 70)
+
+#d
+ex_d <- lobster_abundance %>% filter(site != "NAPL")
+
+
+
+```
+
+group_by()
+
+```{r}
+ex_e <- lobster_abundance %>% group_by(size_mm) %>% 
+  summarize(mean_size = mean(size_mm, na.rm =TRUE),
+            sd_size =  sd(size_mm, na.rm =TRUE))
+
+ex_e
+
+## Mutate
+ex_g <- lobster_abundance %>% mutate(size_cm = size_mm/10)
+ex_g
+
+ex_h <- lobster_abundance %>% mutate(tolower(site))
+ex_h
+
+ex_h$site <- toString(ex_h$site)
+```
+
+\
+),st_siz = sd(size_mm,na.rm = TRUE))
